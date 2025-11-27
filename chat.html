@@ -1,0 +1,46 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>我的聊天室</title>
+  <style>
+    body { font-family: Arial; max-width: 600px; margin: 20px auto; }
+    #chat { height: 400px; border: 1px solid #ccc; padding: 10px; overflow-y: auto; }
+    #msg { width: 75%; padding: 8px; }
+    #send { width: 22%; padding: 8px; background: green; color: white; border: none; }
+  </style>
+</head>
+<body>
+  <h2>💬 聊天室</h2>
+  <div id="chat"></div>
+  <input id="msg" placeholder="输入消息..." />
+  <button id="send">发送</button>
+
+  <script>
+    const ws = new WebSocket('wss://free-chat-ws.onrender.com');
+    let name = localStorage.n || prompt('昵称？') || '匿名';
+    localStorage.n = name;
+    
+    ws.onmessage = e => {
+      try {
+        let d = JSON.parse(e.data);
+        if (d.type === 'chat') {
+          document.getElementById('chat').innerHTML += 
+            `<p style="color:${d.user===name?'blue':'black'}">${d.user}: ${d.text}</p>`;
+          document.getElementById('chat').scrollTop = chat.scrollHeight;
+        }
+      } catch {}
+    };
+    
+    document.getElementById('send').onclick = () => {
+      let t = document.getElementById('msg').value.trim();
+      if (t) {
+        ws.send(JSON.stringify({type:'chat', user:name, text:t}));
+        document.getElementById('msg').value = '';
+      }
+    };
+    
+    document.getElementById('msg').onkeypress = e => { if (e.key === 'Enter') document.getElementById('send').click(); };
+  </script>
+</body>
+</html>
